@@ -10,6 +10,9 @@ import { FileNotFoundException } from './exceptions';
 export class RecordsService {
   constructor(private helperService: HelperService) {}
 
+  /**
+   * @description validates record file (.xml/.csv) and returns the failed records
+   */
   async validateFile(file: IFile): Promise<IFailedRecord[]> {
     if (!file) {
       throw new FileNotFoundException();

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import * as csv from 'csv-parse/sync';
 import { transformAndValidate } from 'class-transformer-validator';
 import { parseString } from 'xml2js';
@@ -12,6 +12,9 @@ import { InvalidRecordException } from '../../modules/records/exceptions/';
 export class HelperService {
   constructor() {}
 
+  /**
+   * @description parses the csv file content
+   */
   async parseCsvContent(csvData: string): Promise<IRecord[]> {
     const parsedData: string[][] = await csv.parse(csvData);
 
@@ -34,12 +37,15 @@ export class HelperService {
     return parsedData.slice(1).map(convertCsvToRecord);
   }
 
+  /**
+   * @description parses the xml file content
+   */
   async parseXmlContent(xml: string): Promise<IRecord[]> {
     let records: IRecord[] = [];
 
     await parseString(xml, (err, result) => {
       if (err) {
-        console.error('Error parsing XML:', err);
+        throw new BadRequestException(err);
       } else {
         records = result.records.record.map((record: any) => ({
           reference: +record.$.reference,
@@ -55,6 +61,9 @@ export class HelperService {
     return records;
   }
 
+  /**
+   * @description checks the uniquencess of the transaction references
+   */
   validateUniqueReferences(records: IRecord[]): IFailedRecord[] {
     const uniqueReferences = new Set<number>();
     const failedRecords: IFailedRecord[] = [];
@@ -74,6 +83,9 @@ export class HelperService {
     return failedRecords;
   }
 
+  /**
+   * @description checks the validation of the fields of the parsed file
+   */
   async validateRecords(records: IRecord[]): Promise<void> {
     try {
       for (const record of records) {
@@ -84,6 +96,9 @@ export class HelperService {
     }
   }
 
+  /**
+   * @description checks the end balances of the records
+   */
   validateEndBalance(records: IRecord[]): IFailedRecord[] {
     const failedRecords: IFailedRecord[] = [];
 
@@ -100,6 +115,9 @@ export class HelperService {
     return failedRecords;
   }
 
+  /**
+   * @description generates report for the failed ones which consists of reference, description and reasons by connecting several records that have more than one error
+   */
   generateReport(failedRecords: IFailedRecord[]): IFailedRecord[] {
     return failedRecords.reduce((result, record) => {
       const existingRecord = result.find(

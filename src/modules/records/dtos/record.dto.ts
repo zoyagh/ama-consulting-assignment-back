@@ -1,5 +1,3 @@
-// transaction.dto.ts
-
 import { ApiProperty } from '@nestjs/swagger';
 import { IsIBAN, IsInt, IsNumber, IsPositive, IsString } from 'class-validator';
 
