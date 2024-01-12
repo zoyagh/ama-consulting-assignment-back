@@ -5,7 +5,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
-  IsEnum,
   IsInt,
   IsNotEmpty,
   IsNumber,
@@ -18,7 +17,6 @@ import {
 } from 'class-validator';
 import { isNumber } from 'lodash';
 
-import { ApiEnumProperty } from './property.decorators';
 import { ToArray, ToBoolean, ToLowerCase, ToUpperCase, Trim } from './transform.decorators';
 
 interface IStringFieldOptions {
@@ -47,9 +45,7 @@ export function NumberField(
   const { each, int, minimum, maximum, isPositive, swagger } = options;
 
   if (swagger !== false) {
-    decorators.push(
-      ApiProperty({ type: Number, ...options, example: int ? 1 : 1.2 }),
-    );
+    decorators.push(ApiProperty({ type: Number, ...options, example: int ? 1 : 1.2 }));
   }
 
   if (each) {
@@ -112,29 +108,6 @@ export function BooleanField(
 
   if (options.swagger !== false) {
     decorators.push(ApiProperty({ type: Boolean, ...options }));
-  }
-
-  return applyDecorators(...decorators);
-}
-
-export function EnumField<TEnum>(
-  getEnum: () => TEnum,
-  options: Omit<ApiPropertyOptions, 'type' | 'enum' | 'enumName'> &
-    Partial<{
-      each: boolean;
-      swagger: boolean;
-    }> = {},
-): PropertyDecorator {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const enumValue = getEnum() as any;
-  const decorators = [IsEnum(enumValue as object, { each: options.each })];
-
-  if (options.swagger !== false) {
-    decorators.push(ApiEnumProperty(getEnum, options));
-  }
-
-  if (options.each) {
-    decorators.push(ToArray());
   }
 
   return applyDecorators(...decorators);

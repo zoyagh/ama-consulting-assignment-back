@@ -1,4 +1,5 @@
 import { Transform } from 'class-transformer';
+import { parsePhoneNumber } from 'libphonenumber-js';
 import { castArray, isArray, isNil, map, trim } from 'lodash';
 
 /**
@@ -34,6 +35,26 @@ export function ToBoolean(): PropertyDecorator {
         default:
           return params.value;
       }
+    },
+    { toClassOnly: true },
+  );
+}
+
+/**
+ * @description convert string or number to integer
+ * @example
+ * @IsNumber()
+ * @ToInt()
+ * name: number;
+ * @returns PropertyDecorator
+ * @constructor
+ */
+export function ToInt(): PropertyDecorator {
+  return Transform(
+    (params) => {
+      const value = params.value as string;
+
+      return Number.parseInt(value, 10);
     },
     { toClassOnly: true },
   );
@@ -102,4 +123,8 @@ export function ToUpperCase(): PropertyDecorator {
       toClassOnly: true,
     },
   );
+}
+
+export function PhoneNumberSerializer(): PropertyDecorator {
+  return Transform((params) => parsePhoneNumber(params.value as string).number);
 }

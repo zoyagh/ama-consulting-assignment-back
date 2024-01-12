@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import { NumberField, StringField } from '../../../decorators';
+import { NumberField, StringField } from '../../../common/decorators';
 
 export class FailedRecordDto {
   @ApiProperty()
@@ -13,10 +13,4 @@ export class FailedRecordDto {
 
   @ApiProperty({ isArray: true, type: String })
   reasons: string[];
-
-  constructor(reference: number, description: string, reasons: string[]) {
-    this.reference = reference;
-    this.description = description;
-    this.reasons = reasons;
-  }
 }

@@ -1,41 +1,24 @@
-import {
-  ClassSerializerInterceptor,
-  HttpStatus,
-  UnprocessableEntityException,
-  ValidationPipe,
-} from '@nestjs/common';
+import { HttpStatus, UnprocessableEntityException, ValidationPipe } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
-// import compression from 'compression';
 import * as cookieParser from 'cookie-parser';
-import { middleware as expressCtx } from 'express-ctx';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
-import * as morgan from 'morgan';
 
 import { AppModule } from './app.module';
-import { HttpExceptionFilter } from './filters/bad-request.filter';
-import { QueryFailedFilter } from './filters/query-failed.filter';
 import { setupSwagger } from './setup-swagger';
-// import { ApiConfigService } from './shared/services/api-config.service';
-// import { SharedModule } from './shared/shared.module';
+import { HttpExceptionFilter } from './common/filters/bad-request.filter';
 
 export async function bootstrap(): Promise<NestExpressApplication> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.enable('trust proxy');
   app.use(helmet());
   app.use(
     rateLimit({
-      windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 500, // limit each IP to 100 requests per windowMs
+      windowMs: 15 * 60 * 1000,
+      max: 500,
     }),
   );
 
-  // const configService = app.select(SharedModule).get(ApiConfigService);
-
-  // app.use(compression());
-  // app.use(morgan('combined')); // You can delete this one
-  // app.enableVersioning(); //  You can delete this one
   app.use(cookieParser());
 
   app.enableCors({
@@ -43,11 +26,9 @@ export async function bootstrap(): Promise<NestExpressApplication> {
     origin: true,
   });
 
-  // const reflector = app.get(Reflector); //  You can delete this one
+  const reflector = app.get(Reflector);
 
-  // app.useGlobalFilters(new HttpExceptionFilter(reflector), new QueryFailedFilter(reflector)); //  You can delete this one
-
-  // app.useGlobalInterceptors(new ClassSerializerInterceptor(reflector)); //  You can delete this one
+  app.useGlobalFilters(new HttpExceptionFilter(reflector));
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -59,18 +40,9 @@ export async function bootstrap(): Promise<NestExpressApplication> {
     }),
   );
 
-  // if (configService.documentationEnabled) {
   setupSwagger(app);
-  // }
 
-  // app.use(expressCtx); // You can delete this one
-
-  // Starts listening for shutdown hooks
-  // if (!configService.isDevelopment) {
-  //   app.enableShutdownHooks();
-  // }
-
-  const port = 3001;
+  const port = process.env.PORT;
   await app.listen(port);
 
   console.info(`server running on ${await app.getUrl()}`);

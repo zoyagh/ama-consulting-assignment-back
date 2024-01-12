@@ -2,7 +2,7 @@ import { Controller, HttpStatus, Post, UploadedFile, UseInterceptors } from '@ne
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 
-import { IFile } from '../../interfaces/';
+import { IFile } from '../../common/interfaces';
 import { FailedRecordDto } from './dtos/';
 import type { IFailedRecord } from './interfaces/';
 import { RecordsService } from './records.service';
@@ -12,15 +12,15 @@ import { RecordsService } from './records.service';
 export class RecordsController {
   constructor(private recordsService: RecordsService) {}
 
-  @Post('file')
+  @Post('validate')
   @UseInterceptors(FileInterceptor('file'))
   @ApiResponse({
     status: HttpStatus.OK,
     type: FailedRecordDto,
-    description: 'Uploaded file response',
+    description: 'Failed records response',
     isArray: true,
   })
-  async fileUpload(@UploadedFile() file: IFile): Promise<IFailedRecord[]> {
-    return this.recordsService.uploadTemporary(file);
+  async validateRecord(@UploadedFile() file: IFile): Promise<IFailedRecord[]> {
+    return this.recordsService.validateFile(file);
   }
 }

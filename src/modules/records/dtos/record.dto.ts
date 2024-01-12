@@ -1,12 +1,12 @@
 // transaction.dto.ts
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsIBAN, IsNumber, IsPositive, IsString } from 'class-validator';
+import { IsIBAN, IsInt, IsNumber, IsPositive, IsString } from 'class-validator';
 
 export class RecordDto {
-  @ApiProperty({ example: 123_456, description: 'Transaction reference' })
-  @IsNumber()
-  transactionReference: number;
+  @ApiProperty({ example: 123456, description: 'Transaction reference' })
+  @IsInt()
+  reference: number;
 
   @ApiProperty({
     example: 'NL91ABNA0417164300',
@@ -25,7 +25,7 @@ export class RecordDto {
   mutation: number;
 
   @ApiProperty({
-    example: 'Payment for services',
+    example: 'Subscription from Vincent de Vries',
     description: 'Free text description',
   })
   @IsString()

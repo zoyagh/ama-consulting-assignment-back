@@ -1,37 +1,35 @@
 import { Injectable } from '@nestjs/common';
 
-import type { IFile } from '../../../src/interfaces/IFile';
-import {
-  generateReport,
-  parseCsvContent,
-  parseXmlContent,
-  validateEndBalance,
-  validateUniqueReferences,
-} from '../../../src/utils/calculation.helper';
-import { ExtensionsEnum } from '../../contstants';
+import type { IFile } from '../../common/interfaces/IFile';
+import { ExtensionsEnum } from '../../common/contstants';
 import type { IFailedRecord, IRecord } from './interfaces/';
+import { HelperService } from '../../common/services/helper.service';
+import { FileNotFoundException } from './exceptions';
 
 @Injectable()
 export class RecordsService {
-  constructor() {}
+  constructor(private helperService: HelperService) {}
 
-  async uploadTemporary(file: IFile): Promise<IFailedRecord[]> {
-    try {
-      if (!file) {
-        console.log("File doesn't exist");
-      }
+  async validateFile(file: IFile): Promise<IFailedRecord[]> {
+    if (!file) {
+      throw new FileNotFoundException();
+    }
 
-      const fileContentString = file.buffer.toString('utf-8');
-      const fileExtension = file.originalname.split('.').pop().toLowerCase();
+    const fileContentString = file.buffer.toString('utf-8');
+    const fileExtension = file.originalname.split('.').pop().toLowerCase();
 
-      const records: IRecord[] =
-        fileExtension === ExtensionsEnum.XML
-          ? await parseXmlContent(fileContentString)
-          : await parseCsvContent(fileContentString);
+    const records: IRecord[] =
+      fileExtension === ExtensionsEnum.XML
+        ? await this.helperService.parseXmlContent(fileContentString)
+        : await this.helperService.parseCsvContent(fileContentString);
 
-      const failedRecords = [...validateUniqueReferences(records), ...validateEndBalance(records)];
+    await this.helperService.validateRecords(records);
 
-      return generateReport(failedRecords);
-    } catch {}
+    const failedRecords = [
+      ...this.helperService.validateUniqueReferences(records),
+      ...this.helperService.validateEndBalance(records),
+    ];
+
+    return this.helperService.generateReport(failedRecords);
   }
 }
